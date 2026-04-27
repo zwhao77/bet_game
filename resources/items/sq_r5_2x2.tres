@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://cqw0a368asood"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_yoh0a"]
+
+[resource]
+script = ExtResource("1_yoh0a")
+id = "sq_r5_2x2"
+item_name = "维度发生器"
+width = 2
+height = 2
+rarity = 5
+base_value = 250000.0
+weight = 50

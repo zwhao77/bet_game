@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://c7s50hpi5iu11"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_v6jjx"]
+
+[resource]
+script = ExtResource("1_v6jjx")
+id = "big_r3_3x3"
+item_name = "核聚变单元"
+width = 3
+height = 3
+rarity = 3
+base_value = 60000.0
+weight = 10

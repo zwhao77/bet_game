@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://cwy84nickfno2"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_q12i8"]
+
+[resource]
+script = ExtResource("1_q12i8")
+id = "big_r1_3x3"
+item_name = "大型储罐"
+width = 3
+height = 3
+rarity = 1
+base_value = 3000.0
+weight = 10

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://oj6056aipcjc"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_yixrf"]
+
+[resource]
+script = ExtResource("1_yixrf")
+id = "big_r4_3x3"
+item_name = "AI母体核心"
+width = 3
+height = 3
+rarity = 4
+base_value = 280000.0
+weight = 10

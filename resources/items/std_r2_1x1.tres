@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://sbr4cpl7e7sw"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_x4dy2"]
+
+[resource]
+script = ExtResource("1_x4dy2")
+id = "std_r2_1x1"
+item_name = "精炼铁板"
+rarity = 2
+base_value = 250.0

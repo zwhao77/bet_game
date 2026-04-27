@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://bs23lvfdb1pnh"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_3dm5w"]
+
+[resource]
+script = ExtResource("1_3dm5w")
+id = "ver_r1_1x2"
+item_name = "支撑钢柱"
+height = 2
+rarity = 1
+base_value = 180.0
+weight = 30

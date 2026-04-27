@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://bl633xxiokd1y"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_xr4g4"]
+
+[resource]
+script = ExtResource("1_xr4g4")
+id = "hor_r0_2x1"
+item_name = "粗糙木板"
+width = 2
+base_value = 25.0
+weight = 80

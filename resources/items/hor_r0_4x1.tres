@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://dpm04dttnsycu"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_ru678"]
+
+[resource]
+script = ExtResource("1_ru678")
+id = "hor_r0_4x1"
+item_name = "原生原木"
+width = 4
+base_value = 120.0
+weight = 40

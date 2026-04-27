@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://cv4le0d8pi2hi"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_hhb4i"]
+
+[resource]
+script = ExtResource("1_hhb4i")
+id = "big_r2_3x3"
+item_name = "自动生产线"
+width = 3
+height = 3
+rarity = 2
+base_value = 14000.0
+weight = 10

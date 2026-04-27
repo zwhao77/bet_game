@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://7q0wa3ci4hdp"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_6l8to"]
+
+[resource]
+script = ExtResource("1_6l8to")
+id = "hor_r0_3x1"
+item_name = "石灰岩块"
+width = 3
+base_value = 60.0
+weight = 60

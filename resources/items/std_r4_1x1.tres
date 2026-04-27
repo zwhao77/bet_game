@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://bju276ubmswhw"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_emwb8"]
+
+[resource]
+script = ExtResource("1_emwb8")
+id = "std_r4_1x1"
+item_name = "黄金处理器"
+rarity = 4
+base_value = 4500.0

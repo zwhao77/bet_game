@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://bea7ybbjpko2v"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_v1nnh"]
+
+[resource]
+script = ExtResource("1_v1nnh")
+id = "ver_r5_1x3"
+item_name = "相位跃迁器"
+height = 3
+rarity = 5
+base_value = 300000.0
+weight = 15

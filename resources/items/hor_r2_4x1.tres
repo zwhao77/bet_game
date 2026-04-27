@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://bktl02t04fw0g"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_yk543"]
+
+[resource]
+script = ExtResource("1_yk543")
+id = "hor_r2_4x1"
+item_name = "铅制屏障"
+width = 4
+rarity = 2
+base_value = 3200.0
+weight = 40

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://blaye6oxv7fan"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_rn8ay"]
+
+[resource]
+script = ExtResource("1_rn8ay")
+id = "hor_r4_2x1"
+item_name = "碳纤维板"
+width = 2
+rarity = 4
+base_value = 10000.0
+weight = 80

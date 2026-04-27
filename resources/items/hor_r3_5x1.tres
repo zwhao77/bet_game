@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://bm65kpf4al66l"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_n2262"]
+
+[resource]
+script = ExtResource("1_n2262")
+id = "hor_r3_5x1"
+item_name = "桥梁模块"
+width = 5
+rarity = 3
+base_value = 25000.0
+weight = 20

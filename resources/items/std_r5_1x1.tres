@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://cgtjwccg3qwhu"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_ncu8h"]
+
+[resource]
+script = ExtResource("1_ncu8h")
+id = "std_r5_1x1"
+item_name = "远古核心"
+rarity = 5
+base_value = 20000.0

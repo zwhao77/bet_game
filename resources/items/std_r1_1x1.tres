@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://m0g6l24525y2"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_xj0ga"]
+
+[resource]
+script = ExtResource("1_xj0ga")
+id = "std_r1_1x1"
+item_name = "铜线圈"
+rarity = 1
+base_value = 60.0

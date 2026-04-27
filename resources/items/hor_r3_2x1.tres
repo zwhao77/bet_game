@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://cqstx2lng4bc"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_sr0iy"]
+
+[resource]
+script = ExtResource("1_sr0iy")
+id = "hor_r3_2x1"
+item_name = "钛合金构件"
+width = 2
+rarity = 3
+base_value = 2500.0
+weight = 80

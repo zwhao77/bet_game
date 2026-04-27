@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://culi625pymvc2"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_y1pyo"]
+
+[resource]
+script = ExtResource("1_y1pyo")
+id = "sq_r3_2x2"
+item_name = "反应堆外壳"
+width = 2
+height = 2
+rarity = 3
+base_value = 11000.0
+weight = 50

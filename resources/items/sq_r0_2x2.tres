@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://dov5pk4btf8pp"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_hav4r"]
+
+[resource]
+script = ExtResource("1_hav4r")
+id = "sq_r0_2x2"
+item_name = "简易木箱"
+width = 2
+height = 2
+weight = 50

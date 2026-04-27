@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://cobii7ajegxhg"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_13nhu"]
+
+[resource]
+script = ExtResource("1_13nhu")
+id = "sq_r1_2x2"
+item_name = "补给箱"
+width = 2
+height = 2
+rarity = 1
+base_value = 600.0
+weight = 50

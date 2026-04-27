@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://d1uqxva7rphvd"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_0r2l8"]
+
+[resource]
+script = ExtResource("1_0r2l8")
+id = "ver_r0_1x3"
+item_name = "锈蚀旗杆"
+height = 3
+weight = 15

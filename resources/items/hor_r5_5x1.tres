@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://ci7i8ow0743wc"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_muda2"]
+
+[resource]
+script = ExtResource("1_muda2")
+id = "hor_r5_5x1"
+item_name = "黑色纪念碑"
+width = 5
+rarity = 5
+base_value = 600000.0
+weight = 20

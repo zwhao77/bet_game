@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://c4gqhxnkdfhsv"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_fl6ue"]
+
+[resource]
+script = ExtResource("1_fl6ue")
+id = "sq_r2_2x2"
+item_name = "精密机柜"
+width = 2
+height = 2
+rarity = 2
+base_value = 2500.0
+weight = 50

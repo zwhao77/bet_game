@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://e04sw8vprk6p"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_pv0bp"]
+
+[resource]
+script = ExtResource("1_pv0bp")
+id = "ver_r2_1x3"
+item_name = "避雷针塔"
+height = 3
+rarity = 2
+base_value = 3000.0
+weight = 15

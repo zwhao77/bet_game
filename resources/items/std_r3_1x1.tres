@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://td8fs2ykt1cj"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_phi3i"]
+
+[resource]
+script = ExtResource("1_phi3i")
+id = "std_r3_1x1"
+item_name = "镀银齿轮"
+rarity = 3
+base_value = 1000.0

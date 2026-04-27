@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://ci0p7reyh4vlh"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_r5a4x"]
+
+[resource]
+script = ExtResource("1_r5a4x")
+id = "big_r5_3x3"
+item_name = "遗迹飞船残骸"
+width = 3
+height = 3
+rarity = 5
+base_value = 1500000.0
+weight = 10

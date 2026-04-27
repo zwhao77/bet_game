@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemResource" format=3 uid="uid://dppij343r0e0"]
+
+[ext_resource type="Script" uid="uid://c66yn8v3v6tpl" path="res://scripts/ItemResource.gd" id="1_lp1lt"]
+
+[resource]
+script = ExtResource("1_lp1lt")
+id = "hor_r0_5x1"
+item_name = "混凝土预制墙"
+width = 5
+base_value = 200.0
+weight = 20
