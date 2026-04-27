@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://68ftddfm6552"]
+
+[ext_resource type="Script" uid="uid://cwpxf8roh4gco" path="res://scripts/loot_grid_container.gd" id="1_qpowv"]
+
+[node name="LootGridContainer" type="Control" unique_id=300971778]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_qpowv")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=2039697988]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="ScrollContainer" unique_id=334976149]
+visible = false
+layout_mode = 2
+
+[node name="ItemSlotLayer" type="Control" parent="ScrollContainer" unique_id=377858386]
+layout_mode = 2

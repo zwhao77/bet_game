@@ -1,16 +1,6 @@
 extends Node
-
+class_name LootGenerator
 # --- 强类型数据容器 ---
-
-## 掉落条目强类型包装
-class LootEntry:
-	var res: ItemResource
-	var pos: Vector2i
-
-	func _init(_res: ItemResource, _pos: Vector2i):
-		self.res = _res
-		self.pos = _pos
-
 ## 内部类：负责数据缓存与查询 (LootTable)
 class LootTable:
 	# buckets[rarity][width] = Array[ItemResource]

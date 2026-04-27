@@ -1,7 +1,6 @@
 # ItemResource.gd
 extends Resource
 class_name ItemResource
-
 @export_group("Identity")
 @export var id: String = ""
 @export var item_name: String = ""
