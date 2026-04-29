@@ -19,6 +19,14 @@ config/icon="res://icon.svg"
 
 window/stretch/aspect="expand"
 
+[global_group]
+
+items="网格内的物品"
+
+[gui]
+
+theme/custom_font="uid://bjc1328ug0t87"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

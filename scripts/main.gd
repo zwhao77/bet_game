@@ -34,7 +34,8 @@ func _on_item_revealed(data: ItemResource) -> void:
 	# 打印一行带有格式的消息
 	# [b] 是加粗，[color] 可以根据稀有度自定义
 	var color_hex = _get_rarity_color_hex(data.rarity)
-	var msg = "[color=%s][+][/color] 获得 [b]%s[/b] - 价值: [color=yellow]$%.2f[/color]\n" % [
+	# 在 RichTextLabel 的 Theme Overrides -> Constants -> Tab Size 设置为 200 (根据需求调)
+	var msg = "[color=%s][+][/color] %s \t [color=gray]价值:[/color][color=yellow]$%.2f[/color]\n" % [
 		color_hex,
 		data.item_name,
 		data.base_value

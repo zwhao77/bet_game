@@ -1,5 +1,5 @@
 extends Control
-
+class_name ItemUI
 # --- 信号 ---
 signal arrival_finished
 signal selection_changed(node: Control, is_selected: bool)
@@ -11,140 +11,149 @@ var is_loading: bool = false
 var active_tween: Tween = null
 var current_grid_size: float = 32.0
 
+# 预加载缓冲变量
+var item_entry: LootEntry = null
+var _pending_grid_size: float = 32.0
+
 @onready var marquee: ColorRect = $MarqueeBorder
 @onready var content: Control = $Content
 @onready var background: ColorRect = $Content/Background
 @onready var label: Label = $Content/InfoVBox/Label
-
+@onready var static_border: Panel = $Content/StaticBorder # 请确保场景中有此节点
+@onready var selection_frame: Panel = $Content/SelectionBorder
 func _ready() -> void:
-	# 移除了代码设置 pivot_offset，交由面板的 pivot_offset_ratio 自动处理 [cite: 1]
-	modulate.a = 1
-	content.scale = Vector2.ZERO
-	content.modulate.a = 0.0
+	# 1. 初始隐藏动态内容
+	content.modulate.a = 1.0
+	content.scale = Vector2.ONE
 	marquee.hide()
 
-## 外部接口：注入数据。animate 参数决定是否播放掉落动画
-func setup(data: ItemResource, grid_size: float = 32.0, animate: bool = true) -> void:
+	# 2. 如果在 add_child 之前已经注入了数据，立即执行物理设置
+	if item_entry:
+		_apply_pre_visuals(item_entry.res, _pending_grid_size)
+	#mouse_entered.connect(_on_mouse_entered)
+
+## 外部接口：在 instantiate 之后，add_child 之前调用，确保 _ready 时已有数据
+func init_item(entry: LootEntry, grid_size: float = 32.0) -> void:
+	item_entry = entry
+	_pending_grid_size = grid_size
+
+## 物理层面初始化：设置尺寸、Shader参数和占位底色
+func _apply_pre_visuals(data: ItemResource, grid_size: float) -> void:
 	item_data = data
 	current_grid_size = grid_size
 
-	# 同步更新基础尺寸和颜色
+	# 立即更新尺寸（Shader 依赖此参数）
 	update_size(grid_size)
-	background.color = _get_rarity_color(data.rarity)
-	label.text = "%s" % [data.item_name]
 
-	if animate:
-		await _play_arrival_sequence()
-	else:
-		apply_visual_instantly()
+	# 占位视觉：灰色背景，隐藏文字，显示常驻边框
+	background.color = Color("2d2d2d")
+	label.text = ""
+
+	if static_border:
+		static_border.show()
+		static_border.modulate.a = 0.7 # 淡淡的常驻轮廓
+
+func start_reveal() -> void:
+	update_size(current_grid_size)
+	if not item_data: return
+	is_loading = true
+
+	label.text = item_data.item_name
+	var target_color = _get_rarity_color(item_data.rarity)
+	var warm_up_time = 0.4 + (item_data.rarity * 0.2)
+
+	if active_tween and active_tween.is_valid():
+		active_tween.kill()
+
+	# --- 阶段 1：纯串行等待 ---
+	# 这个 Tween 只负责把跑马灯亮起来并等待
+	marquee.modulate.a = 1.0
+	marquee.show()
+
+	# 使用 await 强制程序在这里停住，直到等待时间结束
+	# 这样可以确保阶段 2 的并行逻辑绝对不会提前触发
+	await get_tree().create_timer(warm_up_time).timeout
+	# --- 阶段 2：纯并行揭晓 ---
+	# 时间到，启动第二个 Tween，这次我们直接开启并行模式
+	content.scale = Vector2(0.9, 0.9)
+	active_tween = create_tween().set_parallel(true)
+	active_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+	active_tween.tween_property(background, "color", target_color, 0.1)
+	active_tween.tween_property(content, "modulate:a", 1.0, 0.1)
+
+	# 瞬间从 0.9 缩放到 1.0
+	active_tween.tween_property(content, "scale", Vector2.ONE, 0.2)
+
+	marquee.hide()
+
+	await active_tween.finished
+
+	is_loading = false
+	arrival_finished.emit()
 
 func update_size(grid_size: float) -> void:
 	if not item_data: return
 	current_grid_size = grid_size
-
 	var target_size = Vector2(item_data.width, item_data.height) * grid_size
 
-	# 修复警告：如果根节点有锚点限制，手动设置 size 会被覆盖
-	# 方案 A：确保根节点 Anchors 为 Top/Left，且使用 custom_minimum_size 撑开
+	# 1. 物理布局更新
 	custom_minimum_size = target_size
-	# 使用 set_deferred 确保在下一帧闲时更新 size，避开布局冲突
 	set_deferred("size", target_size)
 
-	# 内部 Content 节点通常我们希望它跟随机体缩放
-	if content:
-		content.custom_minimum_size = target_size
-		content.set_deferred("size", target_size)
-
-	if background:
-		background.set_deferred("size", target_size)
-
+	# 2. 同步 Shader 参数
 	if marquee.material:
-		marquee.material.set_shader_parameter("rect_size", target_size)
+		# marquee 必须是一个 CanvasItem (如 ColorRect/Sprite2D)
+		marquee.set_instance_shader_parameter("rect_size", target_size)
 
-	# 跑马灯修复：直接对齐到父节点边缘，无需手动设 size，这样它会跟随父节点缩放
-	marquee.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	# 确保 offset 为 0 以实现完美对齐
-	marquee.offset_left = 0
-	marquee.offset_top = 0
-	marquee.offset_right = 0
-	marquee.offset_bottom = 0
+	# 3. 动态计算字体大小（已修复 float 报错）
+	var calculated_font_size = int(grid_size / 4)
+	label.add_theme_font_size_override("font_size", calculated_font_size)
 
-	#var dynamic_font_size = max(4, int(grid_size * 0.3))
-	#label.add_theme_font_size_override("font_size", dynamic_font_size)
+	# 4. 【新增】为 Label 设置动态边距
+	# 我们可以基于 grid_size 的比例来设置边距，例如边距为网格大小的 10%
+	var margin_value = int(grid_size * 0.1)
 
-func skip_animation() -> void:
-	if not is_loading: return
-	is_loading = false
-	if active_tween and active_tween.is_valid():
-		active_tween.kill()
-	_finish_instantly()
-## 强制瞬间完成所有视觉表现，取消正在播放的动画
+	# 获取现有的 StyleBox（如果没有则创建一个新的 StyleBoxFlat）
+	var sb = label.get_theme_stylebox("normal").duplicate()
+	if not sb is StyleBox:
+		sb = StyleBoxFlat.new()
+		sb.bg_color = Color(0, 0, 0, 0) # 设为透明背景
+
+	# 设置内边距
+	sb.content_margin_left = margin_value
+	sb.content_margin_top = margin_value
+	sb.content_margin_right = margin_value
+	sb.content_margin_bottom = margin_value
+
+	# 应用覆盖
+	label.add_theme_stylebox_override("normal", sb)
+
+
 func apply_visual_instantly() -> void:
 	is_loading = false
-
-	# 彻底杀掉可能的 Tween，防止属性被动画逻辑覆盖
 	if active_tween and active_tween.is_valid():
 		active_tween.kill()
 
-	# 强制设置最终视觉属性
-	modulate.a = 1.0
+	background.color = _get_rarity_color(item_data.rarity)
+	label.text = item_data.item_name
 	content.scale = Vector2.ONE
 	content.modulate.a = 1.0
+	marquee.hide()
 
+	arrival_finished.emit()
+
+func set_selected(value: bool) -> void:
+	if is_selected == value: return # 避免重复触发逻辑
+	is_selected = value
 	if is_selected:
-		marquee.show()
-		marquee.modulate.a = 1.0
-		content.scale = Vector2(1.05, 1.05)
+		selection_frame.show()
+		# 如果想要一点动感，可以用简短的缩放
+		#content.scale = Vector2(0.95, 0.95)
 	else:
-		marquee.modulate.a = 0.0
-		marquee.hide()
-
-	arrival_finished.emit()
-func _play_arrival_sequence() -> void:
-	is_loading = true
-
-	marquee.modulate.a = 1.0
-	modulate.a = 1.0
-	marquee.show()
-	content.modulate.a = 0.0
-
-	await get_tree().process_frame
-
-	var wait_time = item_data.rarity * 0.2 + 0.1
-	while wait_time > 0 and is_loading:
-		wait_time -= get_process_delta_time()
-		await get_tree().process_frame
-
-	if not is_loading:
-		_finish_instantly()
-		return
-
-	content.scale = Vector2(0.4, 0.4)
-	content.modulate.a = 0.0
-
-	active_tween = create_tween().set_parallel(true)
-	active_tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-	active_tween.tween_property(content, "modulate:a", 1.0, 0.3)
-	active_tween.tween_property(content, "scale", Vector2.ONE, 0.3)
-	active_tween.tween_property(marquee, "modulate:a", 0.0, 0.25)
-
-	await active_tween.finished
-
-	if not is_selected:
-		marquee.hide()
-	is_loading = false
-	arrival_finished.emit()
-
-func _finish_instantly() -> void:
-	modulate.a = 1.0
-	content.scale = Vector2.ONE
-	content.modulate.a = 1.0
-	if not is_selected:
-		marquee.modulate.a = 0.0
-		marquee.hide()
-	is_loading = false
-	arrival_finished.emit()
+		selection_frame.hide()
+		#content.scale = Vector2.ONE
+	selection_changed.emit(self , is_selected)
 
 func _get_rarity_color(r: int) -> Color:
 	var colors = [Color("4a404a"), Color("2ecc71"), Color("3498db"), Color("9b59b6"), Color("f1c40f"), Color("e74c3c")]
@@ -154,15 +163,8 @@ func _gui_input(event: InputEvent) -> void:
 	if is_loading: return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		set_selected(!is_selected)
-
-func set_selected(value: bool) -> void:
-	is_selected = value
-	var tw = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	if is_selected:
-		marquee.show()
-		marquee.modulate.a = 1.0
-		tw.tween_property(content, "scale", Vector2(1.05, 1.05), 0.2)
-	else:
-		tw.tween_property(marquee, "modulate:a", 0.0, 0.2).finished.connect(func(): if not is_selected: marquee.hide())
-		tw.tween_property(content, "scale", Vector2.ONE, 0.2)
-	selection_changed.emit(self , is_selected)
+		if is_selected: print("选中了", item_data.item_name)
+		else: print("取消选中了", item_data.item_name)
+func _on_mouse_entered() -> void:
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		set_selected(!is_selected)

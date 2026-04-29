@@ -1,0 +1,7 @@
+[gd_resource type="Theme" format=3 uid="uid://bg13aejakh0ge"]
+
+[ext_resource type="FontFile" uid="uid://bjc1328ug0t87" path="res://fonts/LXGWMarkerGothic-Regular.ttf" id="1_ashe7"]
+
+[resource]
+default_font = ExtResource("1_ashe7")
+default_font_size = 15

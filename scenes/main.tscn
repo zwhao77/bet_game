@@ -41,6 +41,7 @@ size_flags_horizontal = 3
 custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
 size_flags_vertical = 3
+bbcode_enabled = true
 scroll_following = true
 
 [node name="Label" type="Label" parent="CanvasLayer/HBoxContainer/VBoxContainer" unique_id=694069338]

@@ -1,34 +1,43 @@
 extends Node
 class_name LootGenerator
 # --- 强类型数据容器 ---
-## 内部类：负责数据缓存与查询 (LootTable)
+# LootTable.gd
 class LootTable:
-	# buckets[rarity][width] = Array[ItemResource]
+# 内存索引结构：buckets[rarity][width] = Array[ItemResource]
 	var buckets: Dictionary = {}
 	var r5_pool: Array[ItemResource] = []
 
-	func _init(path: String):
-		for i in range(6): buckets[i] = {}
-		_load_from_disk(path)
+	func _init(db_path: String = "res://resources/ItemDatabase.tres"):
+		_build_table(db_path)
 
-	func _load_from_disk(path: String):
-		var dir = DirAccess.open(path)
-		if not dir:
-			printerr("LootTable Error: 无法打开目录 ", path)
+	func _build_table(path: String):
+		# 导出后 ResourceLoader 依然能通过重定向找到资源
+		if not ResourceLoader.exists(path):
+			printerr("LootTable Error: 找不到数据库资源，请检查导出设置 ", path)
 			return
 
-		dir.list_dir_begin()
-		var file_name = dir.get_next()
-		while file_name != "":
-			if file_name.ends_with(".tres"):
-				var res = load(path + file_name) as ItemResource
-				if res:
-					if not buckets[res.rarity].has(res.width):
-						buckets[res.rarity][res.width] = []
-					buckets[res.rarity][res.width].append(res)
-					if res.rarity == 5: r5_pool.append(res)
-			file_name = dir.get_next()
-		print("LootTable: 内存桶构建完成。")
+		var db = load(path) as ItemDatabase
+		if not db:
+			printerr("LootTable Error: 资源类型转换失败")
+			return
+
+		for res in db.all_items:
+			if not res: continue
+
+			# 动态初始化字典，支持任意稀有度和宽度
+			if not buckets.has(res.rarity):
+				buckets[res.rarity] = {}
+
+			if not buckets[res.rarity].has(res.width):
+				buckets[res.rarity][res.width] = []
+
+			buckets[res.rarity][res.width].append(res)
+
+			# 顶级池索引
+			if res.rarity == 5:
+				r5_pool.append(res)
+
+		print("LootTable: 内存索引构建成功,加载文件数", db.all_items.size())
 
 	## 核心查询：仅在指定品质内寻找，预算超支直接返回 null
 	func pick_standard(r: int, w: int, budget: float) -> ItemResource:
@@ -62,7 +71,7 @@ var width_bag: Array[int] = []
 # --- 外部接口 ---
 
 func _ready():
-	initialize_table("res://resources/items/")
+	initialize_table("res://resources/ItemDatabase.tres")
 
 func initialize_table(path: String):
 	active_table = LootTable.new(path)
