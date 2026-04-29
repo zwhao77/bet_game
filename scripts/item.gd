@@ -1,16 +1,18 @@
 extends Control
 class_name ItemUI
 # --- 信号 ---
-signal arrival_finished
+signal arrival_finished(sender: ItemUI)
 signal selection_changed(node: Control, is_selected: bool)
 
 # --- 状态与引用 ---
 var item_data: ItemResource = null
 var is_selected: bool = false
 var is_loading: bool = false
+var is_showed: bool = false
 var active_tween: Tween = null
 var current_grid_size: float = 32.0
-
+var sweep_mode: bool = false
+var sweep_target: bool = false
 # 预加载缓冲变量
 var item_entry: LootEntry = null
 var _pending_grid_size: float = 32.0
@@ -30,7 +32,7 @@ func _ready() -> void:
 	# 2. 如果在 add_child 之前已经注入了数据，立即执行物理设置
 	if item_entry:
 		_apply_pre_visuals(item_entry.res, _pending_grid_size)
-	#mouse_entered.connect(_on_mouse_entered)
+	mouse_entered.connect(_on_mouse_entered)
 
 ## 外部接口：在 instantiate 之后，add_child 之前调用，确保 _ready 时已有数据
 func init_item(entry: LootEntry, grid_size: float = 32.0) -> void:
@@ -59,6 +61,7 @@ func start_reveal() -> void:
 	is_loading = true
 
 	label.text = item_data.item_name
+	label.modulate.a = 0.0 # 从完全透明开始，等动画结束时再显示
 	var target_color = _get_rarity_color(item_data.rarity)
 	var warm_up_time = 0.4 + (item_data.rarity * 0.2)
 
@@ -67,6 +70,21 @@ func start_reveal() -> void:
 
 	# --- 阶段 1：纯串行等待 ---
 	# 这个 Tween 只负责把跑马灯亮起来并等待
+	var margin_px = current_grid_size * 0.05
+	# 获取物品在屏幕上的实际物理像素尺寸
+	var real_w = item_data.width * current_grid_size
+	var real_h = item_data.height * current_grid_size
+	# 计算非等比缩放：(总宽 - 两边边距) / 总宽
+	# 这样能保证长边和短边缩进去的距离都是 margin_px
+	var shrink_scale = Vector2(
+		(real_w - margin_px * 2) / real_w,
+		(real_h - margin_px * 2) / real_h
+	)
+	# 2. 准备初始状态
+	if active_tween and active_tween.is_valid():
+		active_tween.kill()
+	print("物品尺寸: ", real_w, "x", real_h, "，初始缩放: ", shrink_scale, "grid_size: ", current_grid_size)
+	content.scale = shrink_scale # 初始处于内缩状态
 	marquee.modulate.a = 1.0
 	marquee.show()
 
@@ -75,22 +93,22 @@ func start_reveal() -> void:
 	await get_tree().create_timer(warm_up_time).timeout
 	# --- 阶段 2：纯并行揭晓 ---
 	# 时间到，启动第二个 Tween，这次我们直接开启并行模式
-	content.scale = Vector2(0.9, 0.9)
 	active_tween = create_tween().set_parallel(true)
 	active_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 	active_tween.tween_property(background, "color", target_color, 0.1)
-	active_tween.tween_property(content, "modulate:a", 1.0, 0.1)
-
-	# 瞬间从 0.9 缩放到 1.0
+	active_tween.tween_property(label, "modulate:a", 1.0, 0.1)
 	active_tween.tween_property(content, "scale", Vector2.ONE, 0.2)
 
-	marquee.hide()
+	# 瞬间从 0.9 缩放到 1.0
 
+	marquee.hide()
 	await active_tween.finished
 
+	if !is_showed:
+		arrival_finished.emit(self )
 	is_loading = false
-	arrival_finished.emit()
+	is_showed = true
 
 func update_size(grid_size: float) -> void:
 	if not item_data: return
@@ -131,6 +149,7 @@ func update_size(grid_size: float) -> void:
 
 
 func apply_visual_instantly() -> void:
+	if is_showed: return
 	is_loading = false
 	if active_tween and active_tween.is_valid():
 		active_tween.kill()
@@ -140,8 +159,8 @@ func apply_visual_instantly() -> void:
 	content.scale = Vector2.ONE
 	content.modulate.a = 1.0
 	marquee.hide()
-
-	arrival_finished.emit()
+	is_showed = true
+	arrival_finished.emit(self )
 
 func set_selected(value: bool) -> void:
 	if is_selected == value: return # 避免重复触发逻辑
@@ -160,11 +179,13 @@ func _get_rarity_color(r: int) -> Color:
 	return colors[clamp(r, 0, colors.size() - 1)]
 
 func _gui_input(event: InputEvent) -> void:
-	if is_loading: return
+	if !is_showed || sweep_mode: return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		set_selected(!is_selected)
-		if is_selected: print("选中了", item_data.item_name)
-		else: print("取消选中了", item_data.item_name)
 func _on_mouse_entered() -> void:
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		set_selected(!is_selected)
+	if sweep_mode and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and Input.is_key_pressed(KEY_SHIFT):
+		if is_showed:
+			set_selected(sweep_target)
+func _on_sweep(sweeping: bool, target_state: bool) -> void:
+	sweep_mode = sweeping
+	sweep_target = target_state

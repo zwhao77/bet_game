@@ -8,6 +8,13 @@ var grid_dim = Vector2i(15, 30)
 var tile_size: int = 0
 var is_animating: bool = false
 signal item_processed(data: ItemResource)
+# 滑动选择相关
+signal sweep_state_changed(sweeping: bool, target_state: bool)
+var sweep_pending: bool = false # 等待第一个选中信号
+var sweep_active: bool = false # 滑动模式已激活
+var sweep_target_state: bool = false # 所有物划物品的目标选中状态
+var shift_held: bool = false
+var mouse_held: bool = false
 
 @onready var scroll_container: ScrollContainer = $ScrollContainer
 @onready var item_layer: Control = $ScrollContainer/ItemSlotLayer
@@ -41,18 +48,19 @@ func _refresh_layout() -> void:
 
 func _spawn_sequence() -> void:
 	var spawned_nodes = []
-
 	# 阶段 A：瞬间生成物理占位 (灰色框)
 	for entry in current_loot_data:
 		var item_ui = ITEM_SCENE.instantiate() as ItemUI
 
 		# [核心修改]：在 add_child 前注入数据，触发内建物理适配
 		item_ui.init_item(entry, float(tile_size))
-
 		item_layer.add_child(item_ui)
 		item_ui.position = Vector2(entry.pos) * tile_size
+		item_ui.arrival_finished.connect(_on_item_revealed)
+		item_ui.selection_changed.connect(_on_item_selected_changed)
+		sweep_state_changed.connect(item_ui._on_sweep)
 		spawned_nodes.append(item_ui)
-
+	await get_tree().process_frame
 	# 阶段 B：依次启动视觉揭晓
 	for item_ui in spawned_nodes:
 		if is_animating:
@@ -63,11 +71,19 @@ func _spawn_sequence() -> void:
 			await get_tree().create_timer(0.08).timeout
 		else:
 			item_ui.apply_visual_instantly()
-
-		item_processed.emit(item_ui.item_data)
-
 	is_animating = false
 
+func _on_item_revealed(item: ItemUI) -> void:
+	item_processed.emit(item.item_data)
+func _on_item_selected_changed(item: ItemUI, is_selected: bool) -> void:
+	print("选中状态改变: ", item.item_data.item_name, " 选中: ", is_selected)
+	if sweep_pending:
+		# 从等待滑动状态进入滑动模式
+		sweep_pending = false
+		sweep_active = true
+		sweep_target_state = is_selected
+		sweep_state_changed.emit(true, sweep_target_state)
+		print("滑动选择已激活，目标选中状态: ", sweep_target_state)
 func _auto_scroll_to_item(item_node: Control) -> void:
 	var item_bottom = item_node.position.y + item_node.size.y
 	var visible_bottom = scroll_container.scroll_vertical + scroll_container.size.y
@@ -97,3 +113,29 @@ func _on_self_resized() -> void:
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		skip_animating()
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.keycode == KEY_SHIFT:
+		shift_held = event.pressed
+		_update_sweep_state()
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		mouse_held = event.pressed
+		_update_sweep_state()
+
+func _update_sweep_state() -> void:
+	if shift_held and mouse_held:
+		if not sweep_active and not sweep_pending:
+			# 进入等待滑动状态
+			sweep_pending = true
+			print("滑动选择准备中...等待第一个选中信号")
+	elif (not shift_held or not mouse_held) and (sweep_pending or sweep_active):
+		# 退出所有滑动状态
+		_end_sweep()
+func _end_sweep() -> void:
+	if not sweep_pending and not sweep_active:
+		return
+	sweep_pending = false
+	sweep_active = false
+	sweep_target_state = false
+	# 通知所有子节点结束滑动模式
+	sweep_state_changed.emit(false, false)
+	print("滑动选择结束")
