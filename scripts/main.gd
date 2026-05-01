@@ -24,9 +24,9 @@ func _do_generate() -> void:
 
 	# 生成数据模型
 	var entries = loot_generator.generate_loot(luck, budget, grid_dim, {}, {}, 0.05)
-
+	var loot_array = LootEntryArray.new(entries, grid_dim)
 	# 喂给 UI 容器
-	loot_display.display_loot(entries, grid_dim)
+	loot_display.display_loot(loot_array, grid_dim)
 
 func _on_item_revealed(data: ItemResource) -> void:
 	total_value += data.base_value
@@ -45,7 +45,7 @@ func _on_item_revealed(data: ItemResource) -> void:
 	label.text = "$%.2f" % total_value
 	# 可选：更新标题或单独的 Label 显示总价值
 	# print("当前累计总价值: ", total_value)
-func _get_rarity_color_hex(rarity: int) -> String:
+func _get_rarity_color_hex(rarity: Rarity.Type) -> String:
 	var colors = ["#aaaaaa", "#2ecc71", "#3498db", "#9b59b6", "#f1c40f", "#e74c3c"]
 	return colors[clamp(rarity, 0, colors.size() - 1)]
 

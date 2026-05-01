@@ -10,6 +10,6 @@ class_name ItemResource
 @export_range(1, 5) var height: int = 1
 
 @export_group("Economy")
-@export_enum("COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC") var rarity: int = 0
+@export var rarity: Rarity.Type = Rarity.Type.COMMON
 @export var base_value: float = 100.0
 @export var weight: int = 100 # 在同品质内的抽取权重

@@ -22,22 +22,17 @@ border_width_left = 7
 border_width_top = 7
 border_width_right = 7
 border_width_bottom = 7
-border_color = Color(0.07968333, 0.14, 0.0742, 1)
-border_blend = true
+border_color = Color(0.66598004, 0.049699992, 0.71, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_s8enn"]
 shader = ExtResource("1_4gq7n")
 shader_parameter/line_color = Color(1, 1, 0, 1)
-shader_parameter/line_thickness = 2.0
-shader_parameter/speed = 100.0
-shader_parameter/dash_length = 50.0
-shader_parameter/fade_hardness = 1.0
+shader_parameter/line_thickness_ratio = 0.03
+shader_parameter/speed = 500.0
+shader_parameter/dash_length = 100.0
 shader_parameter/loading_scale_factor = 0.4
-shader_parameter/max_loading_radius = 40.0
-shader_parameter/loading_thickness = 3.0
-shader_parameter/loading_speed = 5.0
+shader_parameter/loading_speed = 3.0
 shader_parameter/ring_arc_length = 0.75
-shader_parameter/arc_smoothing = 0.02
 
 [node name="Item" type="Control" unique_id=1596965622 groups=["items"]]
 custom_minimum_size = Vector2(200, 100)

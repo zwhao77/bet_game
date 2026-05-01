@@ -34,7 +34,7 @@ class LootTable:
 			buckets[res.rarity][res.width].append(res)
 
 			# 顶级池索引
-			if res.rarity == 5:
+			if res.rarity == Rarity.Type.LEGENDARY:
 				r5_pool.append(res)
 
 		print("LootTable: 内存索引构建成功,加载文件数", db.all_items.size())
@@ -177,7 +177,7 @@ func _init_grid_mask(size: Vector2i) -> Array:
 
 func _do_upgrade_pass(sequence: Array[LootEntry], prob: float):
 	for entry in sequence:
-		if entry.res.rarity == 4 and randf() < prob:
+		if entry.res.rarity == Rarity.Type.EPIC and randf() < prob:
 			var r5 = active_table.find_r5_upgrade(entry.res)
 			if r5: entry.res = r5
 

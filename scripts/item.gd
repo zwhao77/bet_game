@@ -118,12 +118,19 @@ func update_size(grid_size: float) -> void:
 	# 1. 物理布局更新
 	custom_minimum_size = target_size
 	set_deferred("size", target_size)
-
-	# 2. 同步 Shader 参数
+		# 2. 同步 Shader 参数
 	if marquee.material:
-		# marquee 必须是一个 CanvasItem (如 ColorRect/Sprite2D)
+		# 基础尺寸
 		marquee.set_instance_shader_parameter("rect_size", target_size)
-
+		marquee.set_instance_shader_parameter("grid_size", current_grid_size)
+		# --- 优化参数计算 ---
+		# 计算周长 (w + h) * 2
+		var total_len = (target_size.x + target_size.y) * 2.0
+		marquee.set_instance_shader_parameter("total_len", total_len)
+		# 计算倒数，避免 Shader 在每像素里做除法 (1.0 / total_len)
+		# 增加一个小值 0.0001 防止 target_size 为零导致除以 0 报错
+		var inv_total_len = 1.0 / max(total_len, 0.0001)
+		marquee.set_instance_shader_parameter("inv_total_len", inv_total_len)
 	# 3. 动态计算字体大小（已修复 float 报错）
 	var calculated_font_size = int(grid_size / 4)
 	label.add_theme_font_size_override("font_size", calculated_font_size)
@@ -174,7 +181,7 @@ func set_selected(value: bool) -> void:
 		#content.scale = Vector2.ONE
 	selection_changed.emit(self , is_selected)
 
-func _get_rarity_color(r: int) -> Color:
+func _get_rarity_color(r: Rarity.Type) -> Color:
 	var colors = [Color("4a404a"), Color("2ecc71"), Color("3498db"), Color("9b59b6"), Color("f1c40f"), Color("e74c3c")]
 	return colors[clamp(r, 0, colors.size() - 1)]
 
@@ -189,3 +196,9 @@ func _on_mouse_entered() -> void:
 func _on_sweep(sweeping: bool, target_state: bool) -> void:
 	sweep_mode = sweeping
 	sweep_target = target_state
+static func compare_by_entry_pos(a: ItemUI, b: ItemUI) -> bool:
+	if not a: return false
+	if not b: return true # 将 null 排在最后
+	if a.item_entry.pos.y != b.item_entry.pos.y:
+		return a.item_entry.pos.y < b.item_entry.pos.y
+	return a.item_entry.pos.x < b.item_entry.pos.x

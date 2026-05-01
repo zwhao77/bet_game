@@ -9,3 +9,9 @@ var pos: Vector2i
 func _init(_res: ItemResource = null, _pos: Vector2i = Vector2i.ZERO):
 	self.res = _res
 	self.pos = _pos
+static func compare_by_pos(a: LootEntry, b: LootEntry) -> bool:
+	if not a: return false
+	if not b: return true # 将 null 排在最后
+	if a.pos.y != b.pos.y:
+		return a.pos.y < b.pos.y
+	return a.pos.x < b.pos.x
