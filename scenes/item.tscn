@@ -35,10 +35,9 @@ shader_parameter/loading_speed = 3.0
 shader_parameter/ring_arc_length = 0.75
 
 [node name="Item" type="Control" unique_id=1596965622 groups=["items"]]
-custom_minimum_size = Vector2(200, 100)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 200.0
+offset_right = 100.0
 offset_bottom = 100.0
 pivot_offset_ratio = Vector2(0.5, 0.5)
 mouse_filter = 1
@@ -63,7 +62,7 @@ grow_horizontal = 2
 grow_vertical = 2
 pivot_offset_ratio = Vector2(0.5, 0.5)
 mouse_filter = 2
-color = Color(0.1428582, 0.14285824, 0.1428582, 1)
+color = Color(0.98427516, 0.19313303, 0.7302329, 1)
 
 [node name="InfoVBox" type="VBoxContainer" parent="Content" unique_id=579488936]
 layout_mode = 1

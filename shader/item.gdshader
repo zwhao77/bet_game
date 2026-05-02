@@ -1,10 +1,10 @@
 shader_type canvas_item;
 
 // 从脚本传入，避免 GPU 重算
-instance uniform vec2 rect_size;
-instance uniform float grid_size;
-instance uniform float total_len; // 周长：(w+h)*2
-instance uniform float inv_total_len; // 周长的倒数：1.0/total_len
+instance uniform vec2 rect_size = vec2(100.0, 100.0);
+instance uniform float grid_size = 50.0;
+instance uniform float total_len = 400.0; // 周长：(w+h)*2
+instance uniform float inv_total_len = 0.0025; // 周长的倒数：1.0/total_len
 
 uniform vec4 line_color : source_color = vec4(1.0, 1.0, 0.0, 1.0);
 uniform float line_thickness_ratio = 0.05;

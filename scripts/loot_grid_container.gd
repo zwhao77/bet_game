@@ -15,7 +15,7 @@ var sweep_active: bool = false # 滑动模式已激活
 var sweep_target_state: bool = false # 所有物划物品的目标选中状态
 var shift_held: bool = false
 var mouse_held: bool = false
-
+var _entry_to_ui_map: Dictionary = {} # { LootEntry: ItemUI }
 @onready var scroll_container: ScrollContainer = $ScrollContainer
 @onready var item_layer: Control = $ScrollContainer/ItemSlotLayer
 
@@ -46,15 +46,16 @@ func _refresh_layout() -> void:
 	item_layer.custom_minimum_size = grid_pixel_size
 	item_layer.size = grid_pixel_size
 
-func _place_item(entry: LootEntry) -> ItemUI:
+func _place_item(entry: LootEntry, display_mode: ItemUI.DisplayMode = ItemUI.DisplayMode.FULL_ITEM) -> ItemUI:
 	var item_ui = ITEM_SCENE.instantiate() as ItemUI
 	# [核心修改]：在 add_child 前注入数据，触发内建物理适配
-	item_ui.init_item(entry, float(tile_size))
+	item_ui.init_item(entry, float(tile_size), display_mode)
 	item_layer.add_child(item_ui)
 	item_ui.position = Vector2(entry.pos) * tile_size
 	item_ui.arrival_finished.connect(_on_item_revealed)
 	item_ui.selection_changed.connect(_on_item_selected_changed)
 	sweep_state_changed.connect(item_ui._on_sweep)
+	_entry_to_ui_map[entry] = item_ui
 	return item_ui
 func _start_item(item_ui: ItemUI) -> void:
 	if is_animating:
@@ -102,19 +103,21 @@ func _auto_scroll_to_item(item_node: Control) -> void:
 func skip_animating() -> void:
 	is_animating = false
 	for item_ui in item_layer.get_children():
-		item_ui.apply_visual_instantly()
+		if item_ui is ItemUI:
+			item_ui.apply_visual_instantly()
 
 func _on_self_resized() -> void:
 	_refresh_layout() # 假设这里更新了所有 entry 的 pos 坐标
 	# 直接遍历所有子节点，每个节点自己知道该去哪
 	for item_ui in item_layer.get_children():
-		var entry = item_ui.item_entry
-		if entry:
-			# 1. 使用 entry 内部存储的最新坐标
-			# 2. Vector2i * int 是合法的，会自动转换为 Vector2
-			item_ui.position = entry.pos * tile_size
-			# 3. 这里的 tile_size 如果是 int，转为 float 传参更严谨
-			item_ui.update_size(float(tile_size))
+		if item_ui is ItemUI:
+			var entry = item_ui.item_entry
+			if entry:
+				# 1. 使用 entry 内部存储的最新坐标
+				# 2. Vector2i * int 是合法的，会自动转换为 Vector2
+				item_ui.position = entry.pos * tile_size
+				# 3. 这里的 tile_size 如果是 int，转为 float 传参更严谨
+				item_ui.update_size(float(tile_size))
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:

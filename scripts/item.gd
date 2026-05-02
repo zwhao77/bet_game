@@ -5,6 +5,15 @@ signal arrival_finished(sender: ItemUI)
 signal selection_changed(node: Control, is_selected: bool)
 
 # --- 状态与引用 ---
+enum DisplayMode {
+	HIDE, # 完全隐藏
+	MINI_COLOR, # 模式 A：单格大小，仅显示稀有度颜色
+	GHOST_OUTLINE, # 模式 B：完整轮廓，不显示稀有度
+	COLOR_AND_GHOST, # 模式 C：同时显示颜色和轮廓
+	FULL_ITEM, # 原始显示：完整贴图 + 稀有度背景
+}
+
+var current_mode = DisplayMode.FULL_ITEM
 var item_data: ItemResource = null
 var is_selected: bool = false
 var is_loading: bool = false
@@ -20,12 +29,13 @@ var _pending_grid_size: float = 32.0
 @onready var marquee: ColorRect = $MarqueeBorder
 @onready var content: Control = $Content
 @onready var background: ColorRect = $Content/Background
+@onready var info_vbox: VBoxContainer = $Content/InfoVBox
+@onready var icon: TextureRect = $Content/InfoVBox/Icon
 @onready var label: Label = $Content/InfoVBox/Label
 @onready var static_border: Panel = $Content/StaticBorder # 请确保场景中有此节点
 @onready var selection_frame: Panel = $Content/SelectionBorder
 func _ready() -> void:
 	# 1. 初始隐藏动态内容
-	content.modulate.a = 1.0
 	content.scale = Vector2.ONE
 	marquee.hide()
 
@@ -35,9 +45,10 @@ func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
 
 ## 外部接口：在 instantiate 之后，add_child 之前调用，确保 _ready 时已有数据
-func init_item(entry: LootEntry, grid_size: float = 32.0) -> void:
+func init_item(entry: LootEntry, grid_size: float = 32.0, display_mode: DisplayMode = DisplayMode.FULL_ITEM) -> void:
 	item_entry = entry
 	_pending_grid_size = grid_size
+	current_mode = display_mode
 
 ## 物理层面初始化：设置尺寸、Shader参数和占位底色
 func _apply_pre_visuals(data: ItemResource, grid_size: float) -> void:
@@ -58,11 +69,57 @@ func _apply_pre_visuals(data: ItemResource, grid_size: float) -> void:
 func start_reveal() -> void:
 	update_size(current_grid_size)
 	if not item_data: return
-	is_loading = true
+	match current_mode:
+		DisplayMode.MINI_COLOR:
+			_apply_mini_color_mode()
+		DisplayMode.GHOST_OUTLINE:
+			_apply_ghost_outline_mode()
+		DisplayMode.COLOR_AND_GHOST:
+			_apply_color_and_ghost_mode()
+		DisplayMode.FULL_ITEM:
+			await _start_full_reveal()
+		DisplayMode.HIDE:
+			hide()
+func switch_display_mode(new_mode: DisplayMode) -> void:
+	current_mode = new_mode
+	start_reveal()
+func next_display_mode() -> void:
+	# 1. 计算下一个索引
+	var next_idx = (int(current_mode) + 1) % DisplayMode.size()
+	# 2. 显式转换为枚举类型 (as DisplayMode)
+	current_mode = next_idx as DisplayMode
+	# 3. 执行揭晓逻辑
+	start_reveal()
+func _apply_mini_color_mode() -> void:
+	show()
+	background.color = get_rarity_color(item_data.rarity)
+	if static_border:
+		static_border.hide()
+	info_vbox.hide()
+	is_showed = true
 
+func _apply_ghost_outline_mode() -> void:
+	show()
+	background.color = Color(0, 0, 0, 0) # 完全透明
+	if static_border:
+		static_border.show()
+	info_vbox.hide()
+	is_showed = true
+
+func _apply_color_and_ghost_mode() -> void:
+	show()
+	background.color = get_rarity_color(item_data.rarity)
+	if static_border:
+		static_border.show()
+	info_vbox.hide()
+	is_showed = true
+
+func _start_full_reveal() -> void:
+	show()
+	is_loading = true
 	label.text = item_data.item_name
-	label.modulate.a = 0.0 # 从完全透明开始，等动画结束时再显示
-	var target_color = _get_rarity_color(item_data.rarity)
+	info_vbox.modulate.a = 0.0 # 从完全透明开始，等动画结束时再显示
+	var target_color = get_rarity_color(item_data.rarity)
 	var warm_up_time = 0.4 + (item_data.rarity * 0.2)
 
 	if active_tween and active_tween.is_valid():
@@ -93,11 +150,11 @@ func start_reveal() -> void:
 	await get_tree().create_timer(warm_up_time).timeout
 	# --- 阶段 2：纯并行揭晓 ---
 	# 时间到，启动第二个 Tween，这次我们直接开启并行模式
+	info_vbox.show() # 同时显示物品信息
 	active_tween = create_tween().set_parallel(true)
 	active_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-
 	active_tween.tween_property(background, "color", target_color, 0.1)
-	active_tween.tween_property(label, "modulate:a", 1.0, 0.1)
+	active_tween.tween_property(info_vbox, "modulate:a", 1.0, 0.1)
 	active_tween.tween_property(content, "scale", Vector2.ONE, 0.2)
 
 	# 瞬间从 0.9 缩放到 1.0
@@ -161,10 +218,9 @@ func apply_visual_instantly() -> void:
 	if active_tween and active_tween.is_valid():
 		active_tween.kill()
 
-	background.color = _get_rarity_color(item_data.rarity)
+	background.color = get_rarity_color(item_data.rarity)
 	label.text = item_data.item_name
 	content.scale = Vector2.ONE
-	content.modulate.a = 1.0
 	marquee.hide()
 	is_showed = true
 	arrival_finished.emit(self )
@@ -172,16 +228,16 @@ func apply_visual_instantly() -> void:
 func set_selected(value: bool) -> void:
 	if is_selected == value: return # 避免重复触发逻辑
 	is_selected = value
-	if is_selected:
-		selection_frame.show()
-		# 如果想要一点动感，可以用简短的缩放
-		#content.scale = Vector2(0.95, 0.95)
-	else:
-		selection_frame.hide()
-		#content.scale = Vector2.ONE
+	#if is_selected:
+	#	selection_frame.show()
+	#	# 如果想要一点动感，可以用简短的缩放
+	#	#content.scale = Vector2(0.95, 0.95)
+	#else:
+	#	selection_frame.hide()
+	#	#content.scale = Vector2.ONE
 	selection_changed.emit(self , is_selected)
 
-func _get_rarity_color(r: Rarity.Type) -> Color:
+static func get_rarity_color(r: Rarity.Type) -> Color:
 	var colors = [Color("4a404a"), Color("2ecc71"), Color("3498db"), Color("9b59b6"), Color("f1c40f"), Color("e74c3c")]
 	return colors[clamp(r, 0, colors.size() - 1)]
 
